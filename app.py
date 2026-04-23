@@ -159,8 +159,17 @@ if days_left > 0:
 else:
     suggested_daily = 0
 
-money_saved = budget - daily.sum()
-st.success(f"💰 Money saved this month: ₹{money_saved}")
+current_month_spending = df[
+    (df['Date'].dt.month == selected_date.month) &
+    (df['Date'].dt.year == selected_date.year)
+]['Amount'].sum()
+
+money_saved = budget - current_month_spending
+
+if money_saved >= 0:
+    st.success(f"💰 Money saved this month: ₹{money_saved}")
+else:
+    st.error(f"⚠️ You exceeded budget by ₹{abs(money_saved)}")
 
 day_df = df[df['Date'] == selected_date]
 

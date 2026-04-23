@@ -82,8 +82,17 @@ if st.button("Add Expense"):
     else:
         st.warning("Enter valid data!")
 
-if current_month_spending > 0.8 * budget:
-    st.warning("⚠️ Budget limit going to reach")
+if page == "Budget Overview":
+
+    current_month_spending = df[
+        (df['Date'].dt.month == selected_date.month) &
+        (df['Date'].dt.year == selected_date.year)
+    ]['Amount'].sum()
+
+    st.write(f"Monthly Spend: ₹{current_month_spending}")
+
+    if current_month_spending > 0.8 * budget:
+        st.warning("⚠️ Budget limit going to reach")
 
 from datetime import date
 

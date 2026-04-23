@@ -20,6 +20,28 @@ st.set_page_config(page_title="Expense Tracker", layout="centered")
 
 st.title(" Smart Expense Tracker + Predictor ")
 
+page = st.sidebar.radio("Navigate", [
+    "Add / Manage Expenses",
+    "Budget Overview",
+    "Monthly Analysis",
+    "Yearly Analysis"
+])
+if page == "Monthly Analysis":
+    st.title("📊 Monthly Analysis")
+
+    month_data = df[
+        (df['Date'].dt.month == selected_date.month) &
+        (df['Date'].dt.year == selected_date.year)
+    ]
+
+    daily = month_data.groupby('Date')['Amount'].sum()
+
+    st.write(f"This month you spent ₹{daily.sum()}")
+
+    st.line_chart(daily)
+
+
+
 # ======================
 # FILE SETUP
 # ======================
@@ -60,6 +82,16 @@ if st.button("Add Expense"):
     else:
         st.warning("Enter valid data!")
 
+if current_month_spending > 0.8 * budget:
+    st.warning("⚠️ Budget limit going to reach")
+
+from datetime import date
+
+selected_date = st.date_input("Select Date", value=date.today())
+selected_date = pd.to_datetime(selected_date)
+
+
+
 # ======================
 # PROCESS DATA
 # ======================
@@ -79,6 +111,21 @@ today_spend = today_data['Amount'].sum()
 month_spend = monthly_data['Amount'].sum()
 
 remaining_budget = budget - month_spend
+
+if page == "Yearly Analysis":
+    st.title("📆 Yearly Analysis")
+
+    year_data = df[df['Date'].dt.year == selected_date.year]
+
+    monthly = year_data.groupby(df['Date'].dt.month)['Amount'].sum()
+
+    monthly.index = [
+        "Jan","Feb","Mar","Apr","May","Jun",
+        "Jul","Aug","Sep","Oct","Nov","Dec"
+    ]
+
+    st.bar_chart(monthly)
+
 
 # ======================
 # DISPLAY SUMMARY
@@ -102,6 +149,11 @@ if days_left > 0:
     suggested_daily = remaining_budget / days_left
 else:
     suggested_daily = 0
+
+money_saved = budget - daily.sum()
+st.success(f"💰 Money saved this month: ₹{money_saved}")
+
+day_df = df[df['Date'] == selected_date]
 
 st.subheader("🧠 Smart Spending Plan")
 
@@ -202,5 +254,6 @@ st.bar_chart(category_data)
 # ======================
 # SHOW DATA
 # ======================
+daily_summary = df.groupby(['Date', 'Category'])['Amount'].sum().reset_index()
 st.subheader("📄 All Expenses")
 st.dataframe(df)

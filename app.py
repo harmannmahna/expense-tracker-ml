@@ -5,42 +5,60 @@ import os
 from datetime import date
 import matplotlib.pyplot as plt
 
-import streamlit as st
+# ======================
+# PAGE CONFIG (FIRST)
+# ======================
+st.set_page_config(page_title="Expense Tracker", layout="centered")
+
+# ======================
+# UI THEME
+# ======================
+
 
 st.markdown("""
 <style>
+
+/* App background */
 .stApp {
     background-color: #f5f5dc;
-    color: #3e3e3e;
 }
+
+/* Container spacing */
+.block-container {
+    padding: 2rem 3rem;
+}
+
+/* Buttons */
+div.stButton > button {
+    background-color: #b08968;
+    color: white;
+    border-radius: 10px;
+    padding: 8px 16px;
+    border: none;
+    transition: 0.3s;
+}
+div.stButton > button:hover {
+    background-color: #8c6d57;
+}
+
+/* Metrics */
+[data-testid="metric-container"] {
+    background-color: #e6d5c3;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #ede0d4;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="Expense Tracker", layout="centered")
-
-st.title(" Smart Expense Tracker + Predictor ")
-
-page = st.sidebar.radio("Navigate", [
-    "Add / Manage Expenses",
-    "Budget Overview",
-    "Monthly Analysis",
-    "Yearly Analysis"
-])
-if page == "Monthly Analysis":
-    st.title("📊 Monthly Analysis")
-
-    month_data = df[
-        (df['Date'].dt.month == selected_date.month) &
-        (df['Date'].dt.year == selected_date.year)
-    ]
-
-    daily = month_data.groupby('Date')['Amount'].sum()
-
-    st.write(f"This month you spent ₹{daily.sum()}")
-
-    st.line_chart(daily)
 
 
+st.title("💰 Smart Expense Tracker + Predictor")
 
 # ======================
 # FILE SETUP
@@ -50,228 +68,211 @@ FILE_NAME = "expenses.csv"
 if not os.path.exists(FILE_NAME):
     df = pd.DataFrame(columns=["Date", "Category", "Amount"])
     df.to_csv(FILE_NAME, index=False)
+else:
+    df = pd.read_csv(FILE_NAME)
 
-df = pd.read_csv(FILE_NAME)
+# FIX DATE 🔥
+df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+df = df.dropna(subset=['Date'])
 
 # ======================
-# SIDEBAR BUDGET
+# SIDEBAR
 # ======================
 st.sidebar.header("⚙️ Settings")
+
 budget = st.sidebar.number_input("Monthly Budget (₹)", min_value=0, value=5000)
 
-# ======================
-# ADD EXPENSE
-# ======================
-st.subheader("➕ Add Today's Expense")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    category = st.text_input("Category (Food, Travel, etc)")
-
-with col2:
-    amount = st.number_input("Amount (₹)", min_value=0)
-
-if st.button("Add Expense"):
-    if category and amount > 0:
-        new_data = pd.DataFrame([[date.today(), category, amount]],
-                                columns=["Date", "Category", "Amount"])
-        new_data.to_csv(FILE_NAME, mode='a', header=False, index=False)
-        st.success("Expense added successfully!")
-        st.rerun()
-    else:
-        st.warning("Enter valid data!")
-
-if page == "Budget Overview":
-
-    current_month_spending = df[
-        (df['Date'].dt.month == selected_date.month) &
-        (df['Date'].dt.year == selected_date.year)
-    ]['Amount'].sum()
-
-    st.write(f"Monthly Spend: ₹{current_month_spending}")
-
-    if current_month_spending > 0.8 * budget:
-        st.warning("⚠️ Budget limit going to reach")
-
-from datetime import date
-
-selected_date = st.date_input("Select Date", value=date.today())
+selected_date = st.sidebar.date_input("Select Date", value=date.today())
 selected_date = pd.to_datetime(selected_date)
 
-
+page = st.sidebar.radio("Navigate", [
+    "Add / Manage Expenses",
+    "Budget Overview",
+    "Monthly Analysis",
+    "Yearly Analysis"
+])
 
 # ======================
-# PROCESS DATA
+# COMMON CALCULATIONS
 # ======================
-df = pd.read_csv(FILE_NAME)
-df['Date'] = pd.to_datetime(df['Date'])
+month_data = df[
+    (df['Date'].dt.month == selected_date.month) &
+    (df['Date'].dt.year == selected_date.year)
+]
 
-today = pd.to_datetime(date.today())
-current_month = today.month
-current_year = today.year
+current_month_spending = month_data['Amount'].sum()
+remaining_budget = budget - current_month_spending
 
-monthly_data = df[(df['Date'].dt.month == current_month) & 
-                  (df['Date'].dt.year == current_year)]
+# ======================
+# PAGE 1: ADD / MANAGE
+# ======================
+if page == "Add / Manage Expenses":
 
-today_data = df[df['Date'] == today]
+    st.subheader("➕ Add Expense")
 
-today_spend = today_data['Amount'].sum()
-month_spend = monthly_data['Amount'].sum()
+    col1, col2 = st.columns(2)
 
-remaining_budget = budget - month_spend
+    with col1:
+        category = st.text_input("Category")
 
-if page == "Yearly Analysis":
-    st.title("📆 Yearly Analysis")
+    with col2:
+        amount = st.number_input("Amount", min_value=0)
+
+    if st.button("Add Expense"):
+        if category and amount > 0:
+            new_data = pd.DataFrame([[selected_date, category, amount]],
+                                    columns=["Date", "Category", "Amount"])
+            df = pd.concat([df, new_data], ignore_index=True)
+            df.to_csv(FILE_NAME, index=False)
+            st.success("Added successfully!")
+            st.rerun()
+        else:
+            st.warning("Enter valid data!")
+
+    # EDIT DATA
+    st.subheader("📅 Expenses on Selected Date")
+
+    day_df = df[df['Date'] == selected_date]
+
+    if not day_df.empty:
+        updated_data = []
+
+        for i, row in day_df.iterrows():
+            c1, c2, c3 = st.columns([3, 2, 1])
+
+            with c1:
+                st.write(row['Category'])
+
+            with c2:
+                new_amt = st.number_input(
+                    f"{row['Category']}",
+                    value=float(row['Amount']),
+                    key=f"amt_{i}"
+                )
+
+            with c3:
+                if st.button("❌", key=f"del_{i}"):
+                    df = df.drop(i)
+                    df.to_csv(FILE_NAME, index=False)
+                    st.rerun()
+
+            updated_data.append((i, new_amt))
+
+        if st.button("💾 Save Changes"):
+            for i, new_amt in updated_data:
+                df.at[i, 'Amount'] = new_amt
+
+            df.to_csv(FILE_NAME, index=False)
+            st.success("Updated!")
+            st.rerun()
+
+    else:
+        st.info("No data for this date")
+
+# ======================
+# # ======================
+# PAGE 2: BUDGET
+# ======================
+elif page == "Budget Overview":
+
+    st.subheader("📊 Budget Summary")
+
+    # Today's spending
+    today_spend = df[df['Date'] == selected_date]['Amount'].sum()
+
+    # Top metrics
+    c1, c2, c3 = st.columns(3)
+
+    c1.metric("Today's Spend", f"₹{today_spend}")
+    c2.metric("Month Spend", f"₹{current_month_spending}")
+
+    if remaining_budget >= 0:
+        c3.metric("Remaining Budget", f"₹{remaining_budget}")
+    else:
+        c3.metric("Over Budget", f"₹{abs(remaining_budget)}")
+
+    st.markdown("---")
+
+    # ======================
+    # SMART BUDGET FEEDBACK
+    # ======================
+    days_in_month = pd.Period(selected_date, freq='M').days_in_month
+    days_left = days_in_month - selected_date.day
+
+    if current_month_spending > budget:
+        # 🔴 Overspent
+        overspend = current_month_spending - budget
+        st.error(f"⚠️ You have overspent by ₹{overspend}")
+
+    elif current_month_spending > 0.8 * budget:
+        # 🟠 Near limit
+        st.warning("⚠️ Budget limit is about to reach. Spend carefully!")
+
+    else:
+        # 🟢 Safe zone
+        if days_left > 0:
+            suggested_daily = (budget - current_month_spending) / days_left
+            st.info(f"💡 You can spend approx ₹{suggested_daily:.2f}/day to stay within budget")
+
+    st.markdown("---")
+
+    # ======================
+    # CATEGORY ANALYSIS (ONLY HERE)
+    # ======================
+    st.subheader("📊 Category-wise Spending")
+
+    if not month_data.empty:
+        cat = month_data.groupby('Category')['Amount'].sum()
+        st.bar_chart(cat)
+    else:
+        st.info("No data for this month")
+# ======================
+# PAGE 3: MONTHLY
+# ======================
+elif page == "Monthly Analysis":
+
+    st.subheader("📊 Monthly Analysis")
+
+    if not month_data.empty:
+        daily = month_data.groupby('Date')['Amount'].sum()
+
+        st.write(f"Total this month: ₹{daily.sum()}")
+
+        st.line_chart(daily)
+    else:
+        st.info("No data for this month")
+
+# ======================
+# PAGE 4: YEARLY
+# ======================
+elif page == "Yearly Analysis":
+
+    st.subheader("📆 Yearly Spending Overview")
 
     year_data = df[df['Date'].dt.year == selected_date.year]
 
-    monthly = year_data.groupby(df['Date'].dt.month)['Amount'].sum()
+    if not year_data.empty:
 
-    monthly.index = [
-        "Jan","Feb","Mar","Apr","May","Jun",
-        "Jul","Aug","Sep","Oct","Nov","Dec"
-    ]
+        monthly = year_data.groupby(year_data['Date'].dt.month)['Amount'].sum()
 
-    st.bar_chart(monthly)
+        # Ensure all 12 months exist
+        all_months = pd.Series(0, index=range(1,13))
+        monthly = all_months.add(monthly, fill_value=0)
 
+        month_names = {
+            1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",
+            7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"
+        }
 
-# ======================
-# DISPLAY SUMMARY
-# ======================
-st.subheader("💲Summary")
+        monthly.index = monthly.index.map(month_names)
 
-col1, col2, col3 = st.columns(3)
+        st.bar_chart(monthly)
 
-col1.metric("Today's Spend", f"₹{today_spend}")
-col2.metric("Month Spend", f"₹{month_spend}")
-col3.metric("Remaining Budget", f"₹{remaining_budget}")
-
-# ======================
-# DAILY BUDGET PREDICTION 🔥
-# ======================
-days_in_month = pd.Period(today, freq='M').days_in_month
-days_passed = today.day
-days_left = days_in_month - days_passed
-
-if days_left > 0:
-    suggested_daily = remaining_budget / days_left
-else:
-    suggested_daily = 0
-
-current_month_spending = df[
-    (df['Date'].dt.month == selected_date.month) &
-    (df['Date'].dt.year == selected_date.year)
-]['Amount'].sum()
-
-money_saved = budget - current_month_spending
-
-if money_saved >= 0:
-    st.success(f"💰 Money saved this month: ₹{money_saved}")
-else:
-    st.error(f"⚠️ You exceeded budget by ₹{abs(money_saved)}")
-
-day_df = df[df['Date'] == selected_date]
-
-st.subheader("🧠 Smart Spending Plan")
-
-st.info(f"To stay within budget, spend approx ₹{suggested_daily:.2f} per day")
+    else:
+        st.info("No data available for this year")
 
 # ======================
-# CATEGORY MANAGEMENT
+# ALL DATA
 # ======================
-st.subheader("➕ Manage Today's Expenses")
-
-today = pd.to_datetime(date.today())
-
-# Get today's data
-today_df = df[df['Date'] == today]
-
-# Add new category
-new_category = st.text_input("Add New Category")
-
-if st.button("Add Category"):
-    if new_category:
-        if new_category not in today_df['Category'].values:
-            new_row = pd.DataFrame([[today, new_category, 0]],
-                                   columns=["Date", "Category", "Amount"])
-            df = pd.concat([df, new_row], ignore_index=True)
-            df.to_csv(FILE_NAME, index=False)
-            st.success("Category added!")
-            st.rerun()
-        else:
-            st.warning("Category already exists!")
-
-# ======================
-# EDIT TODAY'S EXPENSES
-# ======================
-st.subheader("📅 Today's Expenses")
-
-today_df = df[df['Date'] == today]
-
-if not today_df.empty:
-    updated_data = []
-
-    for i, row in today_df.iterrows():
-        col1, col2, col3 = st.columns([3, 2, 1])
-
-        with col1:
-            st.write(row['Category'])
-
-        with col2:
-            new_amount = st.number_input(
-                f"Amount for {row['Category']}",
-                value=float(row['Amount']),
-                key=f"amt_{i}"
-            )
-
-        with col3:
-            if st.button("❌", key=f"del_{i}"):
-                df = df.drop(i)
-                df.to_csv(FILE_NAME, index=False)
-                st.rerun()
-
-        updated_data.append((i, new_amount))
-
-    # Save updates
-    if st.button("💾 Save Changes"):
-        for i, new_amount in updated_data:
-            df.at[i, 'Amount'] = new_amount
-
-        df.to_csv(FILE_NAME, index=False)
-        st.success("Updated successfully!")
-        st.rerun()
-
-else:
-    st.info("No categories added for today yet.")
-
-st.subheader("💰 Today's Summary Table")
-today_df = df[df['Date'] == today]
-st.dataframe(today_df[['Category', 'Amount']])
-# ======================
-# FUTURE PREDICTION CHART
-# ======================
-future_days = np.arange(1, days_left + 1)
-future_spend = np.full_like(future_days, suggested_daily)
-
-st.subheader("💰 Future Spending Plan")
-
-fig, ax = plt.subplots()
-ax.plot(future_days, future_spend)
-ax.set_xlabel("Days Ahead")
-ax.set_ylabel("Recommended Spend (₹)")
-st.pyplot(fig)
-
-# ======================
-# CATEGORY ANALYSIS
-# ======================
-st.subheader("💲 Category-wise Spending")
-category_data = monthly_data.groupby('Category')['Amount'].sum()
-st.bar_chart(category_data)
-
-# ======================
-# SHOW DATA
-# ======================
-daily_summary = df.groupby(['Date', 'Category'])['Amount'].sum().reset_index()
 st.subheader("📄 All Expenses")
 st.dataframe(df)

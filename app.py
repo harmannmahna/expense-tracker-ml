@@ -243,8 +243,10 @@ elif page == "Monthly Analysis":
         st.info("No data for this month")
 
 # ======================
-# PAGE 4: YEARLY
 # ======================
+# YEARLY ANALYSIS FIXED
+# ======================
+
 elif page == "Yearly Analysis":
 
     st.subheader("📆 Yearly Spending Overview")
@@ -253,25 +255,24 @@ elif page == "Yearly Analysis":
 
     if not year_data.empty:
 
+        # Group by month number (1–12)
         monthly = year_data.groupby(year_data['Date'].dt.month)['Amount'].sum()
 
-        # Ensure all 12 months exist
-        all_months = pd.Series(0, index=range(1,13))
-        monthly = all_months.add(monthly, fill_value=0)
+        # Create full 12-month index
+        monthly = monthly.reindex(range(1, 13), fill_value=0)
 
-        month_names = {
-            1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",
-            7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"
-        }
+        # Map to month names in correct order
+        month_names = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ]
 
-        monthly.index = monthly.index.map(month_names)
+        monthly.index = month_names
 
         st.bar_chart(monthly)
 
     else:
         st.info("No data available for this year")
-
-# ======================
 # ALL DATA
 # ======================
 st.subheader("📄 All Expenses")

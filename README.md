@@ -119,10 +119,11 @@ streamlit run app.py
   <img src="addexpense1.png" width="45%">
   <img src="addexpense2.png" width="45%">
 </div>
+
 ### 2)   Navigation & Controls
 Easily switch between Budget, Monthly, and Yearly insights while selecting custom dates for accurate tracking.
 ![Sidebar](menupage.png)<div align="center">
-  <img src="menupage.png" width="500">
+  <img src="menupage.png" width="400">
 </div>
 
 
@@ -137,16 +138,19 @@ Smart warnings notify when spending is approaching the defined budget limit.
 <div align="center">
   <img src="limit.png" width="500">
 </div>
+
 ###  Over Budget Detection
 Instant feedback when spending exceeds budget, helping you adjust financial decisions.
 <div align="center">
   <img src="overspent.png" width="500">
 </div>
+
 ### 4) Category-wise Insights
 Visual breakdown of spending across categories for better financial awareness.
 <div align="center">
   <img src="categorywise.png" width="500">
 </div>
+
 ### 5) Monthly Analysis
 Track daily spending trends with clear visualizations for the selected month.
 <div align="center">
@@ -158,6 +162,7 @@ Forecast upcoming expenses using machine learning based on current spending patt
 <div align="center">
   <img src="MLpredict.png" width="500">
 </div>
+
 ### 7) Yearly Overview & Comparison
 Analyze month-wise trends and compare spending across different years.
 <div align="center">

@@ -114,7 +114,10 @@ streamlit run app.py
 ---
 
 ##  Screenshots
-### 1) Adding expense in the data .
+### 1) Adding expense in the data (Can remove or make changes in added expense too)
+![Add Expense ](addexpense1.png)
+![Shows Record](addexpense2.png)
+
 
 
 

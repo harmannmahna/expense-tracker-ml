@@ -244,12 +244,13 @@ elif page == "Monthly Analysis":
 
 # ======================
 # ======================
-# YEARLY ANALYSIS FIXED
+# ======================
+# YEARLY ANALYSIS (AREA CHART)
 # ======================
 
 elif page == "Yearly Analysis":
 
-    st.subheader("📆 Yearly Spending Overview")
+    st.subheader("📆 Yearly Spending Trend")
 
     year_data = df[df['Date'].dt.year == selected_date.year]
 
@@ -258,10 +259,10 @@ elif page == "Yearly Analysis":
         # Group by month number (1–12)
         monthly = year_data.groupby(year_data['Date'].dt.month)['Amount'].sum()
 
-        # Create full 12-month index
+        # Ensure all 12 months exist
         monthly = monthly.reindex(range(1, 13), fill_value=0)
 
-        # Map to month names in correct order
+        # Month names
         month_names = [
             "Jan", "Feb", "Mar", "Apr", "May", "Jun",
             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -269,10 +270,17 @@ elif page == "Yearly Analysis":
 
         monthly.index = month_names
 
-        st.bar_chart(monthly)
+        # 🔥 AREA CHART (premium look)
+        st.area_chart(monthly, use_container_width=True)
+
+        # 🧠 Extra insight (very useful)
+        max_month = monthly.idxmax()
+        max_value = monthly.max()
+
+        st.success(f"📌 Highest spending was in {max_month} (₹{max_value})")
 
     else:
-        st.info("No data available for this year")
+        st.info("No data available for this year")ata available for this year")
 # ALL DATA
 # ======================
 st.subheader("📄 All Expenses")

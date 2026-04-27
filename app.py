@@ -130,7 +130,7 @@ if page == "Add / Manage Expenses":
             st.warning("Enter valid data!")
 
     # EDIT DATA
-    st.subheader("📅 Expenses on Selected Date")
+    st.subheader(" Expenses on Selected Date")
 
     day_df = df[df['Date'] == selected_date]
 
@@ -175,7 +175,7 @@ if page == "Add / Manage Expenses":
 # ======================
 elif page == "Budget Overview":
 
-    st.subheader("📊 Budget Summary")
+    st.subheader(" Budget Summary")
 
     # Today's spending
     today_spend = df[df['Date'] == selected_date]['Amount'].sum()
@@ -219,7 +219,7 @@ elif page == "Budget Overview":
     # ======================
     # CATEGORY ANALYSIS (ONLY HERE)
     # ======================
-    st.subheader("📊 Category-wise Spending")
+    st.subheader(" Category-wise Spending")
 
     if not month_data.empty:
         cat = month_data.groupby('Category')['Amount'].sum()
@@ -227,21 +227,53 @@ elif page == "Budget Overview":
     else:
         st.info("No data for this month")
 # ======================
-# PAGE 3: MONTHLY
-# ======================
 elif page == "Monthly Analysis":
 
-    st.subheader("📊 Monthly Analysis")
+    st.subheader(" Monthly Analysis")
 
-    if not month_data.empty:
-        daily = month_data.groupby('Date')['Amount'].sum()
+    # your existing monthly graph code here
 
-        st.write(f"Total this month: ₹{daily.sum()}")
+    # ======================
+    # ML PREDICTION (ONLY HERE)
+    # ======================
+    from sklearn.linear_model import LinearRegression
 
-        st.line_chart(daily)
+    st.subheader(" ML Prediction: Future Spending Trend")
+
+    month_df = df[
+        (df['Date'].dt.month == selected_date.month) &
+        (df['Date'].dt.year == selected_date.year)
+    ]
+
+    if len(month_df) > 3:
+
+        daily = month_df.groupby(month_df['Date'].dt.day)['Amount'].sum()
+
+        X = np.array(daily.index).reshape(-1, 1)
+        y = daily.values
+
+        model = LinearRegression()
+        model.fit(X, y)
+
+        days_in_month = pd.Period(selected_date, freq='M').days_in_month
+        future_days = np.arange(selected_date.day + 1, days_in_month + 1)
+
+        if len(future_days) > 0:
+            preds = model.predict(future_days.reshape(-1, 1))
+            preds = np.maximum(preds, 0)
+
+            fig, ax = plt.subplots()
+            ax.plot(daily.index, y, label="Actual")
+            ax.plot(future_days, preds, linestyle='dashed', label="Predicted")
+
+            ax.legend()
+            st.pyplot(fig)
+
+        else:
+            st.info("Month almost complete")
+
     else:
-        st.info("No data for this month")
-
+        st.warning("Add more data for prediction")
 # ======================
 # ======================
 # YEARLY ANALYSIS + COMPARISON
@@ -249,7 +281,7 @@ elif page == "Monthly Analysis":
 
 elif page == "Yearly Analysis":
 
-    st.subheader("📆 Yearly Spending Trend")
+    st.subheader(" Yearly Spending Trend")
 
     selected_year = selected_date.year
     prev_year = selected_year - 1
@@ -303,80 +335,21 @@ elif page == "Yearly Analysis":
             elif diff < 0:
                 st.success(f"📉 You saved ₹{abs(diff)} compared to last year")
             else:
-                st.info("😐 Spending is same as last year")
+                st.info(" Spending is same as last year")
 
         else:
             st.info("No previous year data available for comparison")
 
         # 🔥 Highlight highest month
         max_month = current_monthly.idxmax()
-        st.success(f"📌 Highest spending this year: {max_month}")
+        st.success(f" Highest spending this year: {max_month}")
 
     else:
         st.info("No data available for this year")
 
 # ======================
-# ML PREDICTION (DAILY SPENDING TREND)
-# ======================
 
-from sklearn.linear_model import LinearRegression
-
-st.subheader("🤖 ML Prediction: Future Spending Trend")
-
-# Filter current month data
-month_df = df[
-    (df['Date'].dt.month == selected_date.month) &
-    (df['Date'].dt.year == selected_date.year)
-]
-
-if len(month_df) > 3:  # need minimum data
-
-    # Group by day
-    daily = month_df.groupby(month_df['Date'].dt.day)['Amount'].sum()
-
-    # Prepare data for ML
-    X = np.array(daily.index).reshape(-1, 1)  # days
-    y = daily.values  # spending
-
-    # Train model
-    model = LinearRegression()
-    model.fit(X, y)
-
-    # Predict future days
-    days_in_month = pd.Period(selected_date, freq='M').days_in_month
-    future_days = np.arange(selected_date.day + 1, days_in_month + 1)
-
-    if len(future_days) > 0:
-        future_days_reshaped = future_days.reshape(-1, 1)
-        predictions = model.predict(future_days_reshaped)
-
-        # Avoid negative predictions
-        predictions = np.maximum(predictions, 0)
-
-        # Plot
-        st.subheader("📈 Predicted Spending (Rest of Month)")
-
-        fig, ax = plt.subplots()
-        ax.plot(daily.index, y, label="Actual Spend")
-        ax.plot(future_days, predictions, linestyle='dashed', label="Predicted Spend")
-
-        ax.set_xlabel("Day of Month")
-        ax.set_ylabel("Amount (₹)")
-        ax.legend()
-
-        st.pyplot(fig)
-
-        # Insight
-        avg_future = predictions.mean()
-
-        st.info(f"💡 Based on your pattern, you may spend ~₹{avg_future:.0f}/day ahead")
-
-    else:
-        st.success("Month almost complete — no prediction needed")
-
-else:
-    st.warning("Add at least 4–5 days of data for prediction")
 # ALL DATA
 # ======================
-st.subheader("📄 All Expenses")
+st.subheader(" All Expenses")
 st.dataframe(df)

@@ -91,7 +91,7 @@ df = df.dropna(subset=['Date'])
 # ======================
 st.sidebar.header("⚙️ Settings")
 
-budget = st.sidebar.number_input("Monthly Budget (₹)", min_value=0, value=5000)
+budget = st.sidebar.number_input("Monthly Budget (₹)", min_value=0, value=10000)
 
 selected_date = st.sidebar.date_input("Select Date", value=date.today())
 selected_date = pd.to_datetime(selected_date)

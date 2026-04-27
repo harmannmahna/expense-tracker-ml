@@ -12,62 +12,31 @@ st.set_page_config(
 # ======================
 
 
-# ======================
 st.markdown("""
 <style>
 
-/* Use system theme colors instead of forcing backgrounds */
-.stApp {
-    background-color: var(--background-color);
-    color: var(--text-color);
-}
-
-/* Container spacing */
-.block-container {
-    padding: 1.5rem 1.5rem;
-}
-
-/* Buttons (adaptive) */
+/* FIX BUTTON VISIBILITY */
 div.stButton > button {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: #b08968;
+    color: white !important;
     border-radius: 10px;
-    padding: 8px 16px;
+    padding: 10px 18px;
     border: none;
-    transition: 0.3s;
+    font-weight: 600;
 }
 
-div.stButton > button:hover {
-    opacity: 0.85;
+/* Fix text inputs visibility */
+input, textarea {
+    color: black !important;
 }
 
-/* Metrics (soft card style, adaptive) */
-[data-testid="metric-container"] {
-    background-color: rgba(0, 0, 0, 0.05);
-    padding: 15px;
-    border-radius: 12px;
-}
-
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: rgba(0, 0, 0, 0.03);
-}
-
-/* Tables */
-.stDataFrame {
-    border-radius: 10px;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    .block-container {
-        padding: 1rem;
-    }
+/* Fix labels */
+label {
+    color: inherit !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
-
 
 st.title(" Smart Expense Tracker + Predictor")
 
@@ -241,60 +210,70 @@ elif page == "Budget Overview":
 elif page == "Monthly Analysis":
 
     st.subheader(" Monthly Analysis")
-    
 
-    if not month_data.empty:
-        daily = month_data.groupby('Date')['Amount'].sum()
-
-        st.write(f"Total this month: ₹{daily.sum()}")
-
-        st.line_chart(daily)
-    else:
-        st.info("No data for this month")
-
-    
-    # ======================
-    # ML PREDICTION (ONLY HERE)
-    # ======================
-    from sklearn.linear_model import LinearRegression
-
-    st.subheader(" ML Prediction: Future Spending Trend")
-
-    month_df = df[
+    # Filter current month data
+    month_data = df[
         (df['Date'].dt.month == selected_date.month) &
         (df['Date'].dt.year == selected_date.year)
     ]
 
-    if len(month_df) > 3:
+    if not month_data.empty:
+        daily = month_data.groupby('Date')['Amount'].sum().sort_index()
 
-        daily = month_df.groupby(month_df['Date'].dt.day)['Amount'].sum()
+        st.write(f" Total this month: ₹{daily.sum()}")
 
-        X = np.array(daily.index).reshape(-1, 1)
+        # Simple line chart
+        st.line_chart(daily)
+
+        # ======================
+        # 🤖 ML PREDICTION
+        # ======================
+        st.subheader(" ML Prediction: Future Spending Trend")
+
+        from sklearn.linear_model import LinearRegression
+        import numpy as np
+
+        # Prepare data
+        X = np.arange(len(daily)).reshape(-1, 1)
         y = daily.values
 
+        # Train model
         model = LinearRegression()
         model.fit(X, y)
 
-        days_in_month = pd.Period(selected_date, freq='M').days_in_month
-        future_days = np.arange(selected_date.day + 1, days_in_month + 1)
+        # Predict next 5 days
+        future_days = 5
+        future_X = np.arange(len(daily), len(daily) + future_days).reshape(-1, 1)
+        predictions = model.predict(future_X)
 
-        if len(future_days) > 0:
-            preds = model.predict(future_days.reshape(-1, 1))
-            preds = np.maximum(preds, 0)
+        # Future dates
+        last_date = daily.index[-1]
+        future_dates = pd.date_range(
+            start=last_date + pd.Timedelta(days=1),
+            periods=future_days
+        )
 
-            fig, ax = plt.subplots()
-            ax.plot(daily.index, y, label="Actual")
-            ax.plot(future_days, preds, linestyle='dashed', label="Predicted")
+        # Plot
+        fig, ax = plt.subplots()
 
-            ax.legend()
-            st.pyplot(fig)
+        ax.plot(daily.index, y, label="Actual")
+        ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
 
-        else:
-            st.info("Month almost complete")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Spending (₹)")
+        ax.set_title("Future Spending Prediction")
+        ax.legend()
+
+        plt.xticks(rotation=45)
+
+        st.pyplot(fig)
+
+        # Insight
+        avg_pred = predictions.mean()
+        st.info(f" Expected daily spend ≈ ₹{avg_pred:.2f}")
 
     else:
-        st.warning("Add more data for prediction")
-# ======================
+        st.info("No data for this month")
 # ======================
 # YEARLY ANALYSIS + COMPARISON
 # ======================

@@ -115,24 +115,54 @@ streamlit run app.py
 
 ##  Screenshots
 ### 1) Adding expense in the data and showing record of data added (Can remove or make changes in added expense too)
-![Add Expense ](addexpense1.png)
-![Shows Record](addexpense2.png)
+<div align="center">
+  <img src="addexpense1.png" width="45%">
+  <img src="addexpense2.png" width="45%">
+</div>
 ### 2)   Navigation & Controls
 Easily switch between Budget, Monthly, and Yearly insights while selecting custom dates for accurate tracking.
+![Sidebar](menupage.png)<div align="center">
+  <img src="menupage.png" width="500">
+</div>
+
+
 ### 3) Budget Overview — Stay in Control
 Get daily spending suggestions to remain within your monthly budget.
+<div align="center">
+  <img src="stayinbudget.png" width="500">
+</div>
+
 ###  Budget Alert
 Smart warnings notify when spending is approaching the defined budget limit.
+<div align="center">
+  <img src="limit.png" width="500">
+</div>
 ###  Over Budget Detection
 Instant feedback when spending exceeds budget, helping you adjust financial decisions.
+<div align="center">
+  <img src="overspent.png" width="500">
+</div>
 ### 4) Category-wise Insights
 Visual breakdown of spending across categories for better financial awareness.
+<div align="center">
+  <img src="categorywise.png" width="500">
+</div>
 ### 5) Monthly Analysis
 Track daily spending trends with clear visualizations for the selected month.
+<div align="center">
+  <img src="monthly.png" width="500">
+</div>
+
 ### 6) Spending Prediction (Next 5 Days)
 Forecast upcoming expenses using machine learning based on current spending patterns.
+<div align="center">
+  <img src="MLpredict.png" width="500">
+</div>
 ### 7) Yearly Overview & Comparison
 Analyze month-wise trends and compare spending across different years.
+<div align="center">
+  <img src="yearly.png" width="500">
+</div>
 
 
 

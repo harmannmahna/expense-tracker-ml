@@ -5,9 +5,6 @@ import os
 from datetime import date
 import matplotlib.pyplot as plt
 # ======================
-# 🧠 APP HEADER (LOGO + TITLE + TAGLINE)
-# ======================
-
 st.markdown("""
 <div style='text-align: center; margin-top: 10px;'>
 
@@ -27,7 +24,7 @@ st.markdown("""
         color: #5a5a5a;
         margin-top: 0;
     ">
-        Track. Predict. Optimize your spending 
+        Track. Predict. Optimize your spending
     </p>
 
 </div>

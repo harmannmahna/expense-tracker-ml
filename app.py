@@ -372,3 +372,4 @@ elif page == "Yearly Analysis":
 # ======================
 st.subheader(" All Expenses")
 st.dataframe(df)
+

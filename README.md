@@ -114,10 +114,25 @@ streamlit run app.py
 ---
 
 ##  Screenshots
-### 1) Adding expense in the data (Can remove or make changes in added expense too)
+### 1) Adding expense in the data and showing record of data added (Can remove or make changes in added expense too)
 ![Add Expense ](addexpense1.png)
 ![Shows Record](addexpense2.png)
-
+### 2)   Navigation & Controls
+Easily switch between Budget, Monthly, and Yearly insights while selecting custom dates for accurate tracking.
+### 3) Budget Overview — Stay in Control
+Get daily spending suggestions to remain within your monthly budget.
+###  Budget Alert
+Smart warnings notify when spending is approaching the defined budget limit.
+###  Over Budget Detection
+Instant feedback when spending exceeds budget, helping you adjust financial decisions.
+### 4) Category-wise Insights
+Visual breakdown of spending across categories for better financial awareness.
+### 5) Monthly Analysis
+Track daily spending trends with clear visualizations for the selected month.
+### 6) Spending Prediction (Next 5 Days)
+Forecast upcoming expenses using machine learning based on current spending patterns.
+### 7) Yearly Overview & Comparison
+Analyze month-wise trends and compare spending across different years.
 
 
 

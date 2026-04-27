@@ -244,43 +244,138 @@ elif page == "Monthly Analysis":
 
 # ======================
 # ======================
-# ======================
-# YEARLY ANALYSIS (AREA CHART)
+# YEARLY ANALYSIS + COMPARISON
 # ======================
 
 elif page == "Yearly Analysis":
 
     st.subheader("📆 Yearly Spending Trend")
 
-    year_data = df[df['Date'].dt.year == selected_date.year]
+    selected_year = selected_date.year
+    prev_year = selected_year - 1
 
-    if not year_data.empty:
+    # Current year data
+    current_data = df[df['Date'].dt.year == selected_year]
 
-        # Group by month number (1–12)
-        monthly = year_data.groupby(year_data['Date'].dt.month)['Amount'].sum()
+    # Previous year data
+    prev_data = df[df['Date'].dt.year == prev_year]
 
-        # Ensure all 12 months exist
-        monthly = monthly.reindex(range(1, 13), fill_value=0)
+    if not current_data.empty:
+
+        # Group current year
+        current_monthly = current_data.groupby(current_data['Date'].dt.month)['Amount'].sum()
+        current_monthly = current_monthly.reindex(range(1, 13), fill_value=0)
+
+        # Group previous year (if exists)
+        if not prev_data.empty:
+            prev_monthly = prev_data.groupby(prev_data['Date'].dt.month)['Amount'].sum()
+            prev_monthly = prev_monthly.reindex(range(1, 13), fill_value=0)
+        else:
+            prev_monthly = pd.Series([0]*12, index=range(1,13))
 
         # Month names
         month_names = [
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            "Jan","Feb","Mar","Apr","May","Jun",
+            "Jul","Aug","Sep","Oct","Nov","Dec"
         ]
 
-        monthly.index = month_names
+        current_monthly.index = month_names
+        prev_monthly.index = month_names
 
-        # 🔥 AREA CHART (premium look)
-        st.area_chart(monthly, use_container_width=True)
+        # Combine into one dataframe
+        comparison_df = pd.DataFrame({
+            "Current Year": current_monthly,
+            "Previous Year": prev_monthly
+        })
 
-        # 🧠 Extra insight (very useful)
-        max_month = monthly.idxmax()
-        max_value = monthly.max()
+        # 📊 AREA CHART COMPARISON
+        st.area_chart(comparison_df, use_container_width=True)
 
-        st.success(f"📌 Highest spending was in {max_month} (₹{max_value})")
+        # 🧠 Insights
+        total_current = current_monthly.sum()
+        total_prev = prev_monthly.sum()
+
+        if total_prev > 0:
+            diff = total_current - total_prev
+
+            if diff > 0:
+                st.warning(f"📈 You spent ₹{diff} MORE than last year")
+            elif diff < 0:
+                st.success(f"📉 You saved ₹{abs(diff)} compared to last year")
+            else:
+                st.info("😐 Spending is same as last year")
+
+        else:
+            st.info("No previous year data available for comparison")
+
+        # 🔥 Highlight highest month
+        max_month = current_monthly.idxmax()
+        st.success(f"📌 Highest spending this year: {max_month}")
 
     else:
-        st.info("No data available for this year")ata available for this year")
+        st.info("No data available for this year")
+
+# ======================
+# ML PREDICTION (DAILY SPENDING TREND)
+# ======================
+
+from sklearn.linear_model import LinearRegression
+
+st.subheader("🤖 ML Prediction: Future Spending Trend")
+
+# Filter current month data
+month_df = df[
+    (df['Date'].dt.month == selected_date.month) &
+    (df['Date'].dt.year == selected_date.year)
+]
+
+if len(month_df) > 3:  # need minimum data
+
+    # Group by day
+    daily = month_df.groupby(month_df['Date'].dt.day)['Amount'].sum()
+
+    # Prepare data for ML
+    X = np.array(daily.index).reshape(-1, 1)  # days
+    y = daily.values  # spending
+
+    # Train model
+    model = LinearRegression()
+    model.fit(X, y)
+
+    # Predict future days
+    days_in_month = pd.Period(selected_date, freq='M').days_in_month
+    future_days = np.arange(selected_date.day + 1, days_in_month + 1)
+
+    if len(future_days) > 0:
+        future_days_reshaped = future_days.reshape(-1, 1)
+        predictions = model.predict(future_days_reshaped)
+
+        # Avoid negative predictions
+        predictions = np.maximum(predictions, 0)
+
+        # Plot
+        st.subheader("📈 Predicted Spending (Rest of Month)")
+
+        fig, ax = plt.subplots()
+        ax.plot(daily.index, y, label="Actual Spend")
+        ax.plot(future_days, predictions, linestyle='dashed', label="Predicted Spend")
+
+        ax.set_xlabel("Day of Month")
+        ax.set_ylabel("Amount (₹)")
+        ax.legend()
+
+        st.pyplot(fig)
+
+        # Insight
+        avg_future = predictions.mean()
+
+        st.info(f"💡 Based on your pattern, you may spend ~₹{avg_future:.0f}/day ahead")
+
+    else:
+        st.success("Month almost complete — no prediction needed")
+
+else:
+    st.warning("Add at least 4–5 days of data for prediction")
 # ALL DATA
 # ======================
 st.subheader("📄 All Expenses")

@@ -209,7 +209,7 @@ elif page == "Budget Overview":
 # ======================
 elif page == "Monthly Analysis":
 
-    st.subheader(" Monthly Analysis")
+    st.subheader("📊 Monthly Analysis")
 
     # Filter current month data
     month_data = df[
@@ -218,40 +218,47 @@ elif page == "Monthly Analysis":
     ]
 
     if not month_data.empty:
+
+        # Group by date
         daily = month_data.groupby('Date')['Amount'].sum().sort_index()
 
         st.write(f" Total this month: ₹{daily.sum()}")
 
-        # Simple line chart
+        # Simple chart
         st.line_chart(daily)
 
         # ======================
         # 🤖 ML PREDICTION
         # ======================
         st.subheader(" ML Prediction: Future Spending Trend")
+        st.caption("Prediction for next 5 days")
 
         from sklearn.linear_model import LinearRegression
         import numpy as np
+        from datetime import date
 
-        # Prepare data
-        X = np.arange(len(daily)).reshape(-1, 1)
+        # Use DAY of month as feature (better than index)
+        X = daily.index.day.values.reshape(-1, 1)
         y = daily.values
 
-        # Train model
         model = LinearRegression()
         model.fit(X, y)
 
-        # Predict next 5 days
-        future_days = 5
-        future_X = np.arange(len(daily), len(daily) + future_days).reshape(-1, 1)
+        # Today's date
+        today = pd.to_datetime(date.today())
+
+        # Next 5 days (real calendar days)
+        future_dates = pd.date_range(
+            start=today + pd.Timedelta(days=1),
+            periods=5
+        )
+
+        future_X = future_dates.day.values.reshape(-1, 1)
+
         predictions = model.predict(future_X)
 
-        # Future dates
-        last_date = daily.index[-1]
-        future_dates = pd.date_range(
-            start=last_date + pd.Timedelta(days=1),
-            periods=future_days
-        )
+        # Avoid negative predictions
+        predictions = np.maximum(predictions, 0)
 
         # Plot
         fig, ax = plt.subplots()
@@ -274,7 +281,6 @@ elif page == "Monthly Analysis":
 
     else:
         st.info("No data for this month")
-# ======================
 # YEARLY ANALYSIS + COMPARISON
 # ======================
 

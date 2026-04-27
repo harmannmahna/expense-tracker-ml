@@ -5,30 +5,18 @@ import os
 from datetime import date
 import matplotlib.pyplot as plt
 # ======================
-st.markdown("""
-<div style='text-align: center; margin-top: 10px;'>
+col1, col2, col3 = st.columns([1,2,1])
 
-    <img src="LogoTracker.png" width="110">
-
-    <h1 style="
-        margin-bottom: 5px;
-        color: #2f2f2f;
-        font-weight: 700;
-        letter-spacing: 1px;
-    ">
-        Wise Minds
-    </h1>
-
-    <p style="
-        font-size: 18px;
-        color: #5a5a5a;
-        margin-top: 0;
-    ">
-        Track. Predict. Optimize your spending
-    </p>
-
-</div>
-""", unsafe_allow_html=True)
+with col2:
+    st.image("LogoTracker.png", width=120)
+    st.markdown(
+        "<h1 style='text-align:center;'>Wise Minds</h1>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        "<p style='text-align:center; font-size:18px;'>Track. Predict. Optimize your spending</p>",
+        unsafe_allow_html=True
+    )
 # ======================
 
 

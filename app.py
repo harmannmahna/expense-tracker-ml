@@ -5,10 +5,16 @@ import os
 from datetime import date
 import matplotlib.pyplot as plt
 # ======================
+
+st.set_page_config(
+    page_title="Wise Minds",
+    page_icon="LogoTracker.png",
+    layout="centered"
+)
 col1, col2, col3 = st.columns([1,2,1])
 
 with col2:
-    st.image("LogoTracker.png", width=120)
+    
     st.markdown(
         "<h1 style='text-align:center;'>Wise Minds</h1>",
         unsafe_allow_html=True

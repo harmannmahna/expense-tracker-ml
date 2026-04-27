@@ -4,58 +4,69 @@ import numpy as np
 import os
 from datetime import date
 import matplotlib.pyplot as plt
-
-# ======================
-# PAGE CONFIG (FIRST)
-# ======================
-st.set_page_config(page_title="Expense Tracker", layout="centered")
-
-# ======================
-# UI THEME
+st.set_page_config(
+    page_title="Expense Tracker",
+    page_icon="💰",
+    layout="centered"
+)
 # ======================
 
 
+# ======================
 st.markdown("""
 <style>
 
-/* App background */
+/* Use system theme colors instead of forcing backgrounds */
 .stApp {
-    background-color: #f5f5dc;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 /* Container spacing */
 .block-container {
-    padding: 2rem 3rem;
+    padding: 1.5rem 1.5rem;
 }
 
-/* Buttons */
+/* Buttons (adaptive) */
 div.stButton > button {
-    background-color: #b08968;
+    background-color: var(--primary-color);
     color: white;
     border-radius: 10px;
     padding: 8px 16px;
     border: none;
     transition: 0.3s;
 }
+
 div.stButton > button:hover {
-    background-color: #8c6d57;
+    opacity: 0.85;
 }
 
-/* Metrics */
+/* Metrics (soft card style, adaptive) */
 [data-testid="metric-container"] {
-    background-color: #e6d5c3;
+    background-color: rgba(0, 0, 0, 0.05);
     padding: 15px;
     border-radius: 12px;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #ede0d4;
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Tables */
+.stDataFrame {
+    border-radius: 10px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .block-container {
+        padding: 1rem;
+    }
 }
 
 </style>
 """, unsafe_allow_html=True)
-
 
 
 st.title(" Smart Expense Tracker + Predictor")

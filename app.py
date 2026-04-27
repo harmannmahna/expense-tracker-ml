@@ -4,11 +4,34 @@ import numpy as np
 import os
 from datetime import date
 import matplotlib.pyplot as plt
-st.set_page_config(
-    page_title="Expense Tracker",
-    page_icon="💰",
-    layout="centered"
-)
+# ======================
+# 🧠 APP HEADER (LOGO + TITLE + TAGLINE)
+# ======================
+
+st.markdown("""
+<div style='text-align: center; margin-top: 10px;'>
+
+    <img src="LogoTracker.png" width="110">
+
+    <h1 style="
+        margin-bottom: 5px;
+        color: #2f2f2f;
+        font-weight: 700;
+        letter-spacing: 1px;
+    ">
+        Wise Minds
+    </h1>
+
+    <p style="
+        font-size: 18px;
+        color: #5a5a5a;
+        margin-top: 0;
+    ">
+        Track. Predict. Optimize your spending 
+    </p>
+
+</div>
+""", unsafe_allow_html=True)
 # ======================
 
 
@@ -38,7 +61,7 @@ label {
 </style>
 """, unsafe_allow_html=True)
 
-st.title(" Smart Expense Tracker + Predictor")
+
 
 # ======================
 # FILE SETUP
@@ -209,7 +232,7 @@ elif page == "Budget Overview":
 # ======================
 elif page == "Monthly Analysis":
 
-    st.subheader("📊 Monthly Analysis")
+    st.subheader(" Monthly Analysis")
 
     # Filter current month data
     month_data = df[

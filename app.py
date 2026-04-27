@@ -58,7 +58,7 @@ section[data-testid="stSidebar"] {
 
 
 
-st.title("💰 Smart Expense Tracker + Predictor")
+st.title(" Smart Expense Tracker + Predictor")
 
 # ======================
 # FILE SETUP
@@ -230,9 +230,18 @@ elif page == "Budget Overview":
 elif page == "Monthly Analysis":
 
     st.subheader(" Monthly Analysis")
+    
 
-    # your existing monthly graph code here
+    if not month_data.empty:
+        daily = month_data.groupby('Date')['Amount'].sum()
 
+        st.write(f"Total this month: ₹{daily.sum()}")
+
+        st.line_chart(daily)
+    else:
+        st.info("No data for this month")
+
+    
     # ======================
     # ML PREDICTION (ONLY HERE)
     # ======================

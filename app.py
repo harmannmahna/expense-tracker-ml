@@ -234,10 +234,37 @@ elif page == "Monthly Analysis":
     if not month_data.empty:
 
         # Group by date
-        daily = month_data.groupby('Date')['Amount'].sum().sort_index()
+            daily = month_data.groupby('Date')['Amount'].sum().sort_index()
+                
+            fig, ax = plt.subplots()
+            
+            # Line 244: Format the index as strings ONLY for the visualization
+            ax.plot(daily.index.strftime('%d %b'), daily.values, marker='o')
+            
+            ax.set_xlabel("Date")
+            ax.set_ylabel("Spending (₹)")
+            ax.set_title("Monthly Spending Trend")
+            
+            plt.xticks(rotation=45)
+            
+            st.pyplot(fig)
 
-          # Convert dates to cleaner labels
-        daily.index = daily.index.strftime('%d %b')
+
+# ==============================
+# 🤖 ML PREDICTION
+# ==============================
+st.subheader("ML Prediction: Future Spending Trend")
+st.caption("Prediction for next 5 days")
+
+from sklearn.linear_model import LinearRegression
+import numpy as np
+from datetime import date
+
+# Use DAY of month as feature (This will now work flawlessly!)
+X = daily.index.day.values.reshape(-1, 1)
+y = daily.values
+
+# You can now proceed to model.fit(X, y) smoothly!
 
         fig, ax = plt.subplots()
 

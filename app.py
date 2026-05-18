@@ -239,10 +239,19 @@ elif page == "Monthly Analysis":
           # Convert dates to cleaner labels
         daily.index = daily.index.strftime('%d %b')
 
-        st.line_chart(daily)
+        fig, ax = plt.subplots()
 
-        # Simple chart
-        st.line_chart(daily)
+        ax.plot(daily.index, daily.values, marker='o')
+
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Spending (₹)")
+        ax.set_title("Monthly Spending Trend")
+
+        plt.xticks(rotation=45)
+
+        st.pyplot(fig)
+
+        
 
         # ======================
         # 🤖 ML PREDICTION

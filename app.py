@@ -253,61 +253,65 @@ if not month_data.empty:
         
 
 # ======================
+# ==========================================
 # 🤖 ML PREDICTION
-# ======================
-st.subheader(" ML Prediction: Future Spending Trend")
-st.caption("Prediction for next 5 days")
+# ==========================================
+    st.subheader(" ML Prediction: Future Spending Trend")
+    st.caption("Prediction for next 5 days")
+    
+    from sklearn.linear_model import LinearRegression
+    import numpy as np
+    from datetime import date
+    
+    # Use DAY of month as feature (better than index)
+    X = daily.index.day.values.reshape(-1, 1)
+    y = daily.values
+    
+    model = LinearRegression()
+    model.fit(X, y)
+    
+    # Today's date
+    today = pd.to_datetime(date.today())
+    
+    # Next 5 days (real calendar days)
+    future_dates = pd.date_range(
+        start=today + pd.Timedelta(days=1),
+        periods=5
+    )
+    
+    future_X = future_dates.day.values.reshape(-1, 1)
+    predictions = model.predict(future_X)
+    
+    # Avoid negative predictions
+    predictions = np.maximum(predictions, 0)
+    
+    # Plot
+    fig, ax = plt.subplots()
+    
+    ax.plot(daily.index, y, label="Actual")
+    ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
+    
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Spending (₹)")
+    ax.set_title("Future Spending Prediction")
+    ax.legend()
+    
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+    
+    # Insight
+    avg_pred = predictions.mean()
+    st.info(f" Expected daily spend ≈ ₹{avg_pred:.2f}")
 
-from sklearn.linear_model import LinearRegression
-import numpy as np
-from datetime import date
+else:
+    # Aligns perfectly with the outer "if not month_data.empty:" statement
+    st.info("No data for this month")
 
-# Use DAY of month as feature (better than index)
-X = daily.index.day.values.reshape(-1, 1)
-y = daily.values
 
-model = LinearRegression()
-model.fit(X, y)
-
-# Today's date
-today = pd.to_datetime(date.today())
-
-# Next 5 days (real calendar days)
-future_dates = pd.date_range(
-    start=today + pd.Timedelta(days=1),
-    periods=5
-)
-
-future_X = future_dates.day.values.reshape(-1, 1)
-
-predictions = model.predict(future_X)
-
-# Avoid negative predictions
-predictions = np.maximum(predictions, 0)
-
-# Plot
-fig, ax = plt.subplots()
-
-ax.plot(daily.index, y, label="Actual")
-ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
-
-ax.set_xlabel("Date")
-ax.set_ylabel("Spending (₹)")
-ax.set_title("Future Spending Prediction")
-ax.legend()
-
-plt.xticks(rotation=45)
-
-st.pyplot(fig)
-
-# Insight
-avg_pred = predictions.mean()
-st.info(f" Expected daily spend ≈ ₹{avg_pred:.2f}")
- else:
-        st.info("No data for this month")
+# ==========================================
 # YEARLY ANALYSIS + COMPARISON
-# ======================
-
+# ==========================================
+# Aligns with your main page sidebar configuration router
 elif page == "Yearly Analysis":
 
     st.subheader(" Yearly Spending Trend")
@@ -321,28 +325,27 @@ elif page == "Yearly Analysis":
     # Previous year data
     prev_data = df[df['Date'].dt.year == prev_year]
 
-if not current_data.empty:
-
+    if not current_data.empty:
         # Group current year
         current_monthly = current_data.groupby(current_data['Date'].dt.month)['Amount'].sum()
         current_monthly = current_monthly.reindex(range(1, 13), fill_value=0)
-
+        
         # Group previous year (if exists)
-    if not prev_data.empty:
+        if not prev_data.empty:
             prev_monthly = prev_data.groupby(prev_data['Date'].dt.month)['Amount'].sum()
             prev_monthly = prev_monthly.reindex(range(1, 13), fill_value=0)
         else:
-            prev_monthly = pd.Series([0]*12, index=range(1,13))
-
+            prev_monthly = pd.Series([0]*12, index=range(1, 13))
+        
         # Month names
         month_names = [
-            "Jan","Feb","Mar","Apr","May","Jun",
-            "Jul","Aug","Sep","Oct","Nov","Dec"
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
         ]
-
+        
         current_monthly.index = month_names
         prev_monthly.index = month_names
-
+        
         # Combine into one dataframe
         comparison_df = pd.DataFrame({
             "Current Year": current_monthly,
@@ -365,7 +368,6 @@ if not current_data.empty:
                 st.success(f"📉 You saved ₹{abs(diff)} compared to last year")
             else:
                 st.info(" Spending is same as last year")
-
         else:
             st.info("No previous year data available for comparison")
 
@@ -376,10 +378,9 @@ if not current_data.empty:
     else:
         st.info("No data available for this year")
 
-# ======================
 
-# ALL DATA
-# ======================
+# ==========================================
+# ALL DATA (Global component - flush to left wall)
+# ==========================================
 st.subheader(" All Expenses")
 st.dataframe(df)
-

@@ -249,89 +249,61 @@ if not month_data.empty:
                 
                 st.pyplot(fig)
     
- # ==============================
-    # 🤖 ML PREDICTION
-    # ==============================
-st.subheader("ML Prediction: Future Spending Trend")
+
+        
+
+# ======================
+# 🤖 ML PREDICTION
+# ======================
+st.subheader(" ML Prediction: Future Spending Trend")
 st.caption("Prediction for next 5 days")
-    
+
 from sklearn.linear_model import LinearRegression
 import numpy as np
 from datetime import date
 
-# Use DAY of month as feature (This will now work flawlessly!)
+# Use DAY of month as feature (better than index)
 X = daily.index.day.values.reshape(-1, 1)
 y = daily.values
 
-# You can now proceed to model.fit(X, y) smoothly!
+model = LinearRegression()
+model.fit(X, y)
 
-        fig, ax = plt.subplots()
+# Today's date
+today = pd.to_datetime(date.today())
 
-        ax.plot(daily.index, daily.values, marker='o')
+# Next 5 days (real calendar days)
+future_dates = pd.date_range(
+    start=today + pd.Timedelta(days=1),
+    periods=5
+)
 
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Spending (₹)")
-        ax.set_title("Monthly Spending Trend")
+future_X = future_dates.day.values.reshape(-1, 1)
 
-        plt.xticks(rotation=45)
+predictions = model.predict(future_X)
 
-        st.pyplot(fig)
+# Avoid negative predictions
+predictions = np.maximum(predictions, 0)
 
-        
+# Plot
+fig, ax = plt.subplots()
 
-        # ======================
-        # 🤖 ML PREDICTION
-        # ======================
-        st.subheader(" ML Prediction: Future Spending Trend")
-        st.caption("Prediction for next 5 days")
+ax.plot(daily.index, y, label="Actual")
+ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
 
-        from sklearn.linear_model import LinearRegression
-        import numpy as np
-        from datetime import date
+ax.set_xlabel("Date")
+ax.set_ylabel("Spending (₹)")
+ax.set_title("Future Spending Prediction")
+ax.legend()
 
-        # Use DAY of month as feature (better than index)
-        X = daily.index.day.values.reshape(-1, 1)
-        y = daily.values
+plt.xticks(rotation=45)
 
-        model = LinearRegression()
-        model.fit(X, y)
+st.pyplot(fig)
 
-        # Today's date
-        today = pd.to_datetime(date.today())
-
-        # Next 5 days (real calendar days)
-        future_dates = pd.date_range(
-            start=today + pd.Timedelta(days=1),
-            periods=5
-        )
-
-        future_X = future_dates.day.values.reshape(-1, 1)
-
-        predictions = model.predict(future_X)
-
-        # Avoid negative predictions
-        predictions = np.maximum(predictions, 0)
-
-        # Plot
-        fig, ax = plt.subplots()
-
-        ax.plot(daily.index, y, label="Actual")
-        ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
-
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Spending (₹)")
-        ax.set_title("Future Spending Prediction")
-        ax.legend()
-
-        plt.xticks(rotation=45)
-
-        st.pyplot(fig)
-
-        # Insight
-        avg_pred = predictions.mean()
-        st.info(f" Expected daily spend ≈ ₹{avg_pred:.2f}")
-
-    else:
+# Insight
+avg_pred = predictions.mean()
+st.info(f" Expected daily spend ≈ ₹{avg_pred:.2f}")
+ else:
         st.info("No data for this month")
 # YEARLY ANALYSIS + COMPARISON
 # ======================
@@ -349,14 +321,14 @@ elif page == "Yearly Analysis":
     # Previous year data
     prev_data = df[df['Date'].dt.year == prev_year]
 
-    if not current_data.empty:
+if not current_data.empty:
 
         # Group current year
         current_monthly = current_data.groupby(current_data['Date'].dt.month)['Amount'].sum()
         current_monthly = current_monthly.reindex(range(1, 13), fill_value=0)
 
         # Group previous year (if exists)
-        if not prev_data.empty:
+    if not prev_data.empty:
             prev_monthly = prev_data.groupby(prev_data['Date'].dt.month)['Amount'].sum()
             prev_monthly = prev_monthly.reindex(range(1, 13), fill_value=0)
         else:

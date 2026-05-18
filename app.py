@@ -235,12 +235,12 @@ elif page == "Monthly Analysis":
 
     if not month_data.empty:
         
-        # Group by date
+        # Group by date - keeps standard datetime indexes intact
         daily = month_data.groupby('Date')['Amount'].sum().sort_index()
             
         fig, ax = plt.subplots()
         
-        # Line 244: Format the index as strings ONLY for the visualization
+        # FIX: Formatted x labels directly inside plot call without overwriting df index structures
         ax.plot(daily.index.strftime('%d %b'), daily.values, marker='o')
         
         ax.set_xlabel("Date")
@@ -258,21 +258,20 @@ elif page == "Monthly Analysis":
         
         from sklearn.linear_model import LinearRegression
         import numpy as np
-        from datetime import date
         
-        # Use DAY of month as feature (better than index)
+        # Use DAY of month as feature (Now extracts cleanly from pristine timestamp index)
         X = daily.index.day.values.reshape(-1, 1)
         y = daily.values
         
         model = LinearRegression()
         model.fit(X, y)
         
-        # Today's date
-        today = pd.to_datetime(date.today())
+        # BASE PREDICTION BASELINES ON THE SELECTED CALENDAR SIDEBAR TARGET
+        base_date = selected_date
         
-        # Next 5 days (real calendar days)
+        # Generate the next 5 sequence timeline dates relative to selected calendar baseline
         future_dates = pd.date_range(
-            start=today + pd.Timedelta(days=1),
+            start=base_date + pd.Timedelta(days=1),
             periods=5
         )
         
@@ -282,19 +281,20 @@ elif page == "Monthly Analysis":
         # Avoid negative predictions
         predictions = np.maximum(predictions, 0)
         
-        # Plot
-        fig, ax = plt.subplots()
+        # Plot predictions
+        fig2, ax2 = plt.subplots()
         
-        ax.plot(daily.index, y, label="Actual")
-        ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
+        # Combine historical context with future predictions gracefully using matching string formats
+        ax2.plot(daily.index.strftime('%d %b'), y, marker='o', label="Actual")
+        ax2.plot(future_dates.strftime('%d %b'), predictions, linestyle='--', marker='x', color='orange', label="Predicted")
         
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Spending (₹)")
-        ax.set_title("Future Spending Prediction")
-        ax.legend()
+        ax2.set_xlabel("Date")
+        ax2.set_ylabel("Spending (₹)")
+        ax2.set_title("Future Spending Prediction")
+        ax2.legend()
         
         plt.xticks(rotation=45)
-        st.pyplot(fig)
+        st.pyplot(fig2)
         
         # Insight
         avg_pred = predictions.mean()

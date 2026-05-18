@@ -236,7 +236,10 @@ elif page == "Monthly Analysis":
         # Group by date
         daily = month_data.groupby('Date')['Amount'].sum().sort_index()
 
-        st.write(f" Total this month: ₹{daily.sum()}")
+          # Convert dates to cleaner labels
+        daily.index = daily.index.strftime('%d %b')
+
+        st.line_chart(daily)
 
         # Simple chart
         st.line_chart(daily)

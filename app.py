@@ -231,31 +231,30 @@ elif page == "Monthly Analysis":
         (df['Date'].dt.year == selected_date.year)
     ]
 
-    if not month_data.empty:
-
-        # Group by date
-            daily = month_data.groupby('Date')['Amount'].sum().sort_index()
+if not month_data.empty:
+    
+            # Group by date
+                daily = month_data.groupby('Date')['Amount'].sum().sort_index()
+                    
+                fig, ax = plt.subplots()
                 
-            fig, ax = plt.subplots()
-            
-            # Line 244: Format the index as strings ONLY for the visualization
-            ax.plot(daily.index.strftime('%d %b'), daily.values, marker='o')
-            
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Spending (₹)")
-            ax.set_title("Monthly Spending Trend")
-            
-            plt.xticks(rotation=45)
-            
-            st.pyplot(fig)
-
-
-# ==============================
-# 🤖 ML PREDICTION
-# ==============================
+                # Line 244: Format the index as strings ONLY for the visualization
+                ax.plot(daily.index.strftime('%d %b'), daily.values, marker='o')
+                
+                ax.set_xlabel("Date")
+                ax.set_ylabel("Spending (₹)")
+                ax.set_title("Monthly Spending Trend")
+                
+                plt.xticks(rotation=45)
+                
+                st.pyplot(fig)
+    
+ # ==============================
+    # 🤖 ML PREDICTION
+    # ==============================
 st.subheader("ML Prediction: Future Spending Trend")
 st.caption("Prediction for next 5 days")
-
+    
 from sklearn.linear_model import LinearRegression
 import numpy as np
 from datetime import date

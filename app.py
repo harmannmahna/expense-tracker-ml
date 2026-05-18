@@ -164,7 +164,6 @@ if page == "Add / Manage Expenses":
         st.info("No data for this date")
 
 # ======================
-# # ======================
 # PAGE 2: BUDGET
 # ======================
 elif page == "Budget Overview":
@@ -220,6 +219,9 @@ elif page == "Budget Overview":
         st.bar_chart(cat)
     else:
         st.info("No data for this month")
+
+# ======================
+# PAGE 3: MONTHLY ANALYSIS
 # ======================
 elif page == "Monthly Analysis":
 
@@ -231,87 +233,80 @@ elif page == "Monthly Analysis":
         (df['Date'].dt.year == selected_date.year)
     ]
 
-if not month_data.empty:
-    
-            # Group by date
-                daily = month_data.groupby('Date')['Amount'].sum().sort_index()
-                    
-                fig, ax = plt.subplots()
-                
-                # Line 244: Format the index as strings ONLY for the visualization
-                ax.plot(daily.index.strftime('%d %b'), daily.values, marker='o')
-                
-                ax.set_xlabel("Date")
-                ax.set_ylabel("Spending (₹)")
-                ax.set_title("Monthly Spending Trend")
-                
-                plt.xticks(rotation=45)
-                
-                st.pyplot(fig)
-    
-
+    if not month_data.empty:
         
+        # Group by date
+        daily = month_data.groupby('Date')['Amount'].sum().sort_index()
+            
+        fig, ax = plt.subplots()
+        
+        # Line 244: Format the index as strings ONLY for the visualization
+        ax.plot(daily.index.strftime('%d %b'), daily.values, marker='o')
+        
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Spending (₹)")
+        ax.set_title("Monthly Spending Trend")
+        
+        plt.xticks(rotation=45)
+        st.pyplot(fig)
 
-# ======================
-# ==========================================
-# 🤖 ML PREDICTION
-# ==========================================
-    st.subheader(" ML Prediction: Future Spending Trend")
-    st.caption("Prediction for next 5 days")
-    
-    from sklearn.linear_model import LinearRegression
-    import numpy as np
-    from datetime import date
-    
-    # Use DAY of month as feature (better than index)
-    X = daily.index.day.values.reshape(-1, 1)
-    y = daily.values
-    
-    model = LinearRegression()
-    model.fit(X, y)
-    
-    # Today's date
-    today = pd.to_datetime(date.today())
-    
-    # Next 5 days (real calendar days)
-    future_dates = pd.date_range(
-        start=today + pd.Timedelta(days=1),
-        periods=5
-    )
-    
-    future_X = future_dates.day.values.reshape(-1, 1)
-    predictions = model.predict(future_X)
-    
-    # Avoid negative predictions
-    predictions = np.maximum(predictions, 0)
-    
-    # Plot
-    fig, ax = plt.subplots()
-    
-    ax.plot(daily.index, y, label="Actual")
-    ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
-    
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Spending (₹)")
-    ax.set_title("Future Spending Prediction")
-    ax.legend()
-    
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
-    
-    # Insight
-    avg_pred = predictions.mean()
-    st.info(f" Expected daily spend ≈ ₹{avg_pred:.2f}")
+        # ==========================================
+        # 🤖 ML PREDICTION
+        # ==========================================
+        st.subheader(" ML Prediction: Future Spending Trend")
+        st.caption("Prediction for next 5 days")
+        
+        from sklearn.linear_model import LinearRegression
+        import numpy as np
+        from datetime import date
+        
+        # Use DAY of month as feature (better than index)
+        X = daily.index.day.values.reshape(-1, 1)
+        y = daily.values
+        
+        model = LinearRegression()
+        model.fit(X, y)
+        
+        # Today's date
+        today = pd.to_datetime(date.today())
+        
+        # Next 5 days (real calendar days)
+        future_dates = pd.date_range(
+            start=today + pd.Timedelta(days=1),
+            periods=5
+        )
+        
+        future_X = future_dates.day.values.reshape(-1, 1)
+        predictions = model.predict(future_X)
+        
+        # Avoid negative predictions
+        predictions = np.maximum(predictions, 0)
+        
+        # Plot
+        fig, ax = plt.subplots()
+        
+        ax.plot(daily.index, y, label="Actual")
+        ax.plot(future_dates, predictions, linestyle='--', label="Predicted")
+        
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Spending (₹)")
+        ax.set_title("Future Spending Prediction")
+        ax.legend()
+        
+        plt.xticks(rotation=45)
+        st.pyplot(fig)
+        
+        # Insight
+        avg_pred = predictions.mean()
+        st.info(f" Expected daily spend ≈ ₹{avg_pred:.2f}")
 
-else:
-    # Aligns perfectly with the outer "if not month_data.empty:" statement
-    st.info("No data for this month")
+    else:
+        st.info("No data for this month")
 
 
 # ==========================================
 # YEARLY ANALYSIS + COMPARISON
 # ==========================================
-# Aligns with your main page sidebar configuration router
 elif page == "Yearly Analysis":
 
     st.subheader(" Yearly Spending Trend")
